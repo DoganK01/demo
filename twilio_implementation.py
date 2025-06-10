@@ -22,8 +22,8 @@ import pytz
 load_dotenv()
 
 
-target_date = datetime(2026, 4, 25, 21, 30, 0) # 7:30 PM
-usa_timezone = pytz.timezone('America/Los_Angeles') # Using a common USA timezone, you can be more specific if needed (e.g., 'America/Los_Angeles')
+target_date = datetime(2026, 4, 25, 21, 30, 0)
+usa_timezone = pytz.timezone('America/Los_Angeles')
 
 
 
