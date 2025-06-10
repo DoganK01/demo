@@ -18,13 +18,19 @@ from pyngrok import ngrok
 
 from constants import SYSTEM_PROMPT_REFINED, SYSTEM_PROMPT_GEMINI
 from utils import render_input_nicely
+import pytz
 load_dotenv()
+
+
+target_date = datetime(2026, 4, 25, 21, 30, 0) # 7:30 PM
+usa_timezone = pytz.timezone('America/Los_Angeles') # Using a common USA timezone, you can be more specific if needed (e.g., 'America/Los_Angeles')
+
+
 
 GEMINI_API = os.getenv("GEMINI_API")
 TWILIO_ACCOUNT_SID=os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN=os.getenv("TWILIO_AUTH_TOKEN")
 PHONE_NUMBER_FROM=os.getenv("PHONE_NUMBER_FROM")
-OPENAI_API_KEY= os.getenv("OPENAI_API_KEY")
 OPENAI_KEY=os.getenv("OPENAI_API_KEY")
 PORT=7070
 RAW_NGROK_URL = None
@@ -52,8 +58,8 @@ LOG_EVENT_TYPES = [
 
 app = FastAPI()
 
-if not (TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and PHONE_NUMBER_FROM and OPENAI_KEY):
-    raise ValueError('Missing Twilio and/or OpenAI environment variables. Please set them in the .env file.')
+if not (TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and PHONE_NUMBER_FROM and OPENAI_KEY and GEMINI_API):
+    raise ValueError('Missing Twilio, Gemini and/or OpenAI environment variables. Please set them in the .env file.')
 
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 gemini_client = genai.Client(api_key=GEMINI_API)
@@ -325,12 +331,13 @@ async def cleanup_and_execute_google_services(call_sid: str):
             subject="Reservation Report for April 26th Dinner",
             body=render_input_nicely(response.text)
         )
-
+        localized_start_time = usa_timezone.localize(target_date)
         create_calendar_event(
             creds,
-            summary=f"Review AI Chat Transcript (Call SID: {call_sid})",
-            start_time=datetime.utcnow() + timedelta(hours=1),
-            duration_minutes=30,
+            summary=f"Reservation for Dinner on April 26th",
+            start_time=localized_start_time,
+            duration_minutes=60,
+            location="Peohe's Restaurant, 1201 1st St, Coronado, CA 92118, USA"
         )
     except Exception as e:
         print(f"Failed to run Google service tasks: {e}")
